@@ -6,7 +6,7 @@ import { buildSchema } from "type-graphql";
 import { HelloResolver } from "./resolvers/hello";
 import { PrismaClient } from '@prisma/client';
 import { MyContext } from "./types";
-import { PostResolver } from "./resolvers/post";
+import { PostResolver } from "./resolvers/postResolver";
 
 const main = async () => {
     const prisma = new PrismaClient();
