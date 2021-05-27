@@ -5,25 +5,21 @@ import { ApolloServer } from 'apollo-server-express';
 import { buildSchema } from "type-graphql";
 import { HelloResolver } from "./resolvers/hello";
 import { PrismaClient } from '@prisma/client';
+import { MyContext } from "./types";
+import { PostResolver } from "./resolvers/postResolver";
 
 const main = async () => {
     const prisma = new PrismaClient();
 
-    await prisma.post.create({
-        data: {
-            title: 'hello',
-            author: 'prudhvi',
-        },
-    });
-    const alltitles = await prisma.post.findMany();
-    console.log(alltitles);
     const app = express();
 
     const apolloServer = new ApolloServer ({
         schema: await buildSchema({
-            resolvers: [HelloResolver],
+            resolvers: [HelloResolver, PostResolver],
             validate: false
         }),
+
+        context: ({req, res}): MyContext => ({ prisma, req, res}),
     });
 
     apolloServer.applyMiddleware({app});
