@@ -1,6 +1,11 @@
 Below are the required things to do.
 
 1.) first create a registration and login/logout for users
+    1.) registration done
+    2.) login done
+    3.) tokens are working
+    4.) aple to do CRUD with posts for a specific user
+    5.) logout pending!!!!
 2.) create a chat application
 
 required items
@@ -26,3 +31,6 @@ yarnpkg add -D @types/node typescript
 and the scripts in the package.json
 
 npx prisma init
+
+npx prisma migrate dev --name init
+npx prisma generate

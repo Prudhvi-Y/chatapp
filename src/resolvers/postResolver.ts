@@ -1,141 +1,217 @@
 import { MyContext } from "../types";
 import { Arg, Ctx, Int, Mutation, Query, Resolver } from "type-graphql";
 import { PostResponse } from "../reponses/posts";
+import { getUserId } from "../helpers/jwtUtil";
 
 
 @Resolver()
 export class PostResolver {
     @Query(() => PostResponse)
     async posts(
-        @Ctx() {prisma}: MyContext
+        @Ctx() {req, prisma}: MyContext
     ): Promise<PostResponse | null> {
 
-        const alltitles = await prisma.post.findMany();
-        // console.log(alltitles);
-
-        if (alltitles){
-            return {
-                posts: alltitles,
-            };
+        const user = getUserId(req);
+        if (!user) {
+            throw new Error('user not logged in!');
         } else {
-            return {
-                posts: null,
-            };
+
+            const userposts = await prisma.user.findFirst({
+                where: {
+                    id: user.id,
+                },
+                include: {
+                    posts: true,
+                },
+            });
+            const alltitles = userposts?.posts;
+            // console.log(alltitles);
+
+            if (alltitles){
+                return {
+                    posts: alltitles,
+                };
+            }
         }
+        return {
+            posts: null,
+        };
     }
 
     @Query(() => PostResponse)
     async singlepost(
         @Arg("id", () => Int) id: number,
-        @Ctx() {prisma}: MyContext
+        @Ctx() {req, prisma}: MyContext
     ): Promise<PostResponse | null> {
 
-        const onepost = await prisma.post.findFirst({
-            where: {
-                id: id
-            },
-        });
-
-        if (onepost) {
-            return{
-                posts: [onepost],
-            };
+        const user = getUserId(req);
+        if (!user) {
+            throw new Error('user not logged in!');
         } else {
-            return{
-                posts: null,
-            };
+
+            const userpost = await prisma.user.findFirst({
+                where: {
+                    id: user.id,
+                },
+                select: {
+                    posts: {
+                        where: {
+                            id: id,
+                        },
+                    },
+                },
+            });
+
+            const onepost = userpost?.posts;
+
+            if (onepost) {
+                return{
+                    posts: onepost,
+                };
+            }
         }
+        return{
+            posts: null,
+        };
         
     }
 
     @Mutation(() => PostResponse)
     async createpost (
-        @Arg("title") title: string,
-        @Arg("author") author: string,
-        @Ctx() {prisma}: MyContext
+        @Arg("content") content: string,
+        @Ctx() {req, prisma}: MyContext
     ): Promise<PostResponse | null> {
 
-        const created = await prisma.post.create({
-            data: {
-                title: title,
-                author: author,
-            },
-        });
-
-        if (created) {
-            return{
-                posts: [created],
-            };
+        const user = getUserId(req);
+        if (!user) {
+            throw new Error('user not logged in!');
         } else {
-            return{
-                posts: null,
-            };
+
+            const created = await prisma.user.update({
+                where: {
+                    id: user.id,
+                },
+                data: {
+                    posts: {
+                        create: {
+                            content: content,
+                        },
+                    },
+                },
+                select: {
+                    posts: true,
+                }
+            })
+
+            if (created) {
+                return{
+                    posts: created.posts,
+                };
+            }
         }
+        
+        return{
+            posts: null,
+        };
     }
 
     @Mutation(() => PostResponse)
     async updatepost (
-        @Arg("title") title: string,
-        @Arg("author") author: string,
+        @Arg("content") content: string,
         @Arg("id", ()=>Int) id: number,
-        @Ctx() {prisma}: MyContext
+        @Ctx() {req, prisma}: MyContext
     ): Promise<PostResponse | null> {
 
-        let updated;
-        if (title) {
-            updated = await prisma.post.update({
-                where: {
-                    id: id,
-                },
-                data: {
-                    title: title,
-                },
-            });
-        }
-
-        if (author) {
-            updated = await prisma.post.update({
-                where: {
-                    id: id,
-                },
-                data: {
-                    author: author,
-                },
-            });
-        }
-
-        if (updated) {
-            return{
-                posts: [updated],
-            };
+        const user = getUserId(req);
+        if (!user) {
+            throw new Error('user not logged in!');
         } else {
-            return{
-                posts: null,
-            };
+            let updated;
+            if (content) {
+
+                updated = await prisma.user.update({
+                    where: {
+                        id: user.id,
+                    },
+
+                    data: {
+                        posts: {
+                            update: {
+                                where: {
+                                    id: id,
+                                },
+                                data: {
+                                    content: content,
+                                },
+                            },
+                        },
+                    },
+
+                    select: {
+                        posts: {
+                            where: {
+                                id: id,
+                            },
+                        },
+                    }
+                });
+
+                if (updated) {
+                    return{
+                        posts: updated.posts,
+                    };
+                }
+            }
         }
+        return{
+            posts: null,
+        };
+    
     }
 
     @Mutation(() => PostResponse)
     async deletepost (
         @Arg("id", () => Int) id: number,
-        @Ctx() {prisma}: MyContext
+        @Ctx() {req, prisma}: MyContext
     ): Promise<PostResponse | null> {
 
-        try {
-            const deleted = await prisma.post.delete({
-                where: {
-                    id: id,
-                },
-            });
+        const user = getUserId(req);
+        if (!user) {
+            throw new Error('user not logged in!');
+        } else {
+            try {
 
-            
-            return{
-                posts: [deleted],
-            };
-        } catch {
-            return{
-                posts: null,
-            };
+                const deleted = await prisma.user.update({
+                    where: {
+                        id: user.id,
+                    },
+
+                    select: {
+                        posts: {
+                            where: {
+                                id: id,
+                            },
+                        },
+                    },
+
+                    data: {
+                        posts: {
+                            delete: {
+                                id: id,
+                            },
+                        },
+                    },
+                });
+
+                
+                return{
+                    posts: deleted.posts,
+                };
+            } catch {
+                return{
+                    posts: null,
+                };
+            }
         }
     }
 }
