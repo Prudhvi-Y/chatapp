@@ -1,4 +1,4 @@
-import { Field, ObjectType, ID } from 'type-graphql';
+import { Field, ObjectType, ID, Int } from 'type-graphql';
 
 @ObjectType()
 export class Post {
@@ -12,8 +12,8 @@ export class Post {
     updatedAt: Date;
 
     @Field()
-    author: string;
+    content: string;
 
-    @Field()
-    title: string;
+    @Field(()=> Int, {nullable: true})
+    authorId: number | null;
 }

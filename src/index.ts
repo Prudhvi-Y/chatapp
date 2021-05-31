@@ -7,6 +7,7 @@ import { HelloResolver } from "./resolvers/hello";
 import { PrismaClient } from '@prisma/client';
 import { MyContext } from "./types";
 import { PostResolver } from "./resolvers/postResolver";
+import { SignupResolver } from "./resolvers/usersLogin";
 
 const main = async () => {
     const prisma = new PrismaClient();
@@ -15,7 +16,7 @@ const main = async () => {
 
     const apolloServer = new ApolloServer ({
         schema: await buildSchema({
-            resolvers: [HelloResolver, PostResolver],
+            resolvers: [HelloResolver, PostResolver, SignupResolver],
             validate: false
         }),
 
