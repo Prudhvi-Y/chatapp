@@ -6,3 +6,7 @@ export type MyContext = {
     req: Request;
     res: Response;
 }
+
+export interface subsAuth {
+    Authorization: string,
+};

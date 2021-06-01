@@ -4,12 +4,13 @@ import { User } from '../interfaces/user';
 
 export const APP_SECRET = 'GraphQL-prisma&typescript';
 
-function getTokenPayload(token: string):User | null {
+export function getTokenPayload(token: string):User | null {
     return jwt.verify(token, APP_SECRET) as User | null;
 }
 
 export function getUserId(req: Request):User|null {
-    
+
+
     const authHeader = req.headers.authorization;
     if (authHeader) {
         const token = authHeader.replace('Bearer ', '');
@@ -22,4 +23,5 @@ export function getUserId(req: Request):User|null {
         throw new Error('No authHeader found');
         return null;
     }
+    
 }
