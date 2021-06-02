@@ -1,8 +1,10 @@
 import { MyContext } from "../types";
-import { Arg, Ctx, Int, Mutation, Query, Resolver } from "type-graphql";
+import { Arg, Ctx, Int, Mutation, PubSub, PubSubEngine, Query, Resolver, Root, Subscription } from "type-graphql";
 import { PostResponse } from "../reponses/posts";
 import { getUserId } from "../helpers/jwtUtil";
+import { User } from "../interfaces/user";
 
+const POST_CREATED = 'POSTCREATED';
 
 @Resolver()
 export class PostResolver {
@@ -78,6 +80,7 @@ export class PostResolver {
 
     @Mutation(() => PostResponse)
     async createpost (
+        @PubSub() pubsub: PubSubEngine,
         @Arg("content") content: string,
         @Ctx() {req, prisma}: MyContext
     ): Promise<PostResponse | null> {
@@ -104,6 +107,8 @@ export class PostResolver {
             })
 
             if (created) {
+                const payload: User = user;
+                await pubsub.publish(POST_CREATED, payload);
                 return{
                     posts: created.posts,
                 };
@@ -214,4 +219,34 @@ export class PostResolver {
             }
         }
     }
-}
+
+    @Subscription(()=>PostResponse, {
+        topics: POST_CREATED,
+    })
+    async postCreated(
+        @Root() notificationPayload: User,
+        @Arg("email") email: string,
+        @Ctx() {prisma}: MyContext,
+    ): Promise<PostResponse> {
+        
+        if (notificationPayload.email === email){
+            console.log(email)
+            const userposts = await prisma.user.findFirst({
+                where: {
+                    email: email,
+                },
+                include: {
+                    posts: true,
+                },
+            });
+
+            return {
+                posts: userposts?.posts,
+            };
+        }
+        return {
+            posts: null,
+        }
+    
+    }
+};
