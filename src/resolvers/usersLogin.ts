@@ -2,8 +2,8 @@ import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
 import { UserResponse } from "../reponses/users";
 import { MyContext } from "src/types";
 import * as bcrypt from "bcrypt";
-import jwt from 'jsonwebtoken';
-import { APP_SECRET, getUserId } from '../helpers/jwtUtil';
+import jwt, { Secret } from 'jsonwebtoken';
+import { getUserId } from '../helpers/jwtUtil';
 
 
 @Resolver()
@@ -23,7 +23,7 @@ export class SignupResolver {
                 password: await bcrypt.hash(password, 10),
             },
         });
-        const token = jwt.sign(user, APP_SECRET, {expiresIn: '1h'});
+        const token = jwt.sign(user, process.env.APP_SECRET as Secret, {expiresIn: '1h'});
         if (user){
             return {
                 users: [user],
@@ -60,7 +60,7 @@ export class SignupResolver {
             throw new Error('Password incorrect for user login.');
         }
 
-        const token = jwt.sign(user, APP_SECRET, {expiresIn: '1h'});
+        const token = jwt.sign(user, process.env.APP_SECRET as Secret, {expiresIn: '1h'});
         if (user){
             return {
                 users: [user],
