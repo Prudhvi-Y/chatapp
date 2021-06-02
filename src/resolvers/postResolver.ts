@@ -102,7 +102,9 @@ export class PostResolver {
                     },
                 },
                 select: {
-                    posts: true,
+                    posts: {
+                        take: -1,
+                    },
                 }
             })
 
@@ -230,13 +232,14 @@ export class PostResolver {
     ): Promise<PostResponse> {
         
         if (notificationPayload.email === email){
-            console.log(email)
             const userposts = await prisma.user.findFirst({
                 where: {
                     email: email,
                 },
                 include: {
-                    posts: true,
+                    posts: {
+                        take: -1,
+                    },
                 },
             });
 
