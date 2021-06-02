@@ -10,6 +10,9 @@ import { PostResolver } from "./resolvers/postResolver";
 import { SignupResolver } from "./resolvers/usersLogin";
 import http from 'http';
 import { getTokenPayload } from "./helpers/jwtUtil";
+import * as dotenv from 'dotenv';
+
+dotenv.config({path: __dirname+'../.env'});
 
 const PORT = 4000;
 

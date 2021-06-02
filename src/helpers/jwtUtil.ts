@@ -1,11 +1,9 @@
-import jwt from 'jsonwebtoken';
+import jwt, { Secret } from 'jsonwebtoken';
 import { Request } from "express";
 import { User } from '../interfaces/user';
 
-export const APP_SECRET = 'GraphQL-prisma&typescript';
-
 export function getTokenPayload(token: string):User | null {
-    return jwt.verify(token, APP_SECRET) as User | null;
+    return jwt.verify(token, process.env.APP_SECRET as Secret) as User | null;
 }
 
 export function getUserId(req: Request):User|null {
